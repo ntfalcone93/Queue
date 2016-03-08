@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CloudKit
 
 class AddViewController: UIViewController, UITextFieldDelegate {
     
@@ -25,13 +26,29 @@ class AddViewController: UIViewController, UITextFieldDelegate {
     }
     
     @IBAction func submitQuestionButtonTapped() {
+        let record = CKRecord(recordType: "Question")
+        record["body"] = questionTextField.text ?? ""
+        record["studentName"] = studentNameTextField.text ?? ""
+        record["wasAnswered"] = NSNumber(bool: false)
         
+        let container = CKContainer.defaultContainer()
+    
+        container.publicCloudDatabase.saveRecord(record) { (record, error) -> Void in
+            
+            if error == nil {
+                print("record \(record)")
+            } else {
+                print("error \(error?.localizedDescription)")
+            }
+        }
     }
     
     func textFieldShouldReturn(textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
     }
+    
+    
 
     /*
     // MARK: - Navigation
