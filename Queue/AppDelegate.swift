@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CloudKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -17,7 +18,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
         UITabBar.appearance().tintColor = UIColor(red: 0.204, green: 0.675, blue: 0.878, alpha: 1.00)
+        
+        application.registerUserNotificationSettings(UIUserNotificationSettings(forTypes: [.Alert, .Badge, .Sound], categories: nil))
+        
+        application.registerForRemoteNotifications()
+        
+        
         return true
+    }
+    
+    func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
+        guard let remoteNotificationDictionary = userInfo as? [String: NSObject] else { return }
+        
+        let cloudKitNotification = CKQueryNotification(fromRemoteNotificationDictionary: remoteNotificationDictionary)
+        guard let notificationInfo = cloudKitNotification.recordFields as? [String: String] else { completionHandler(UIBackgroundFetchResult.Failed); return }
+        
+        var alertBody = ""
+        
+        let studentName = notificationInfo["studentName"] ?? "(No name)"
+        alertBody = alertBody + studentName + " asked: "
+        let questionText = notificationInfo["body"] ?? "(No question)"
+        alertBody = alertBody + questionText
+        
+        let localNotification = UILocalNotification()
+        localNotification.alertBody = alertBody
+        localNotification.alertTitle = "New Queue Question"
+        application.presentLocalNotificationNow(localNotification)
+        
+        completionHandler(UIBackgroundFetchResult.NewData)
     }
 
     func applicationWillResignActive(application: UIApplication) {

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CloudKit
 
 class AddViewController: UIViewController, UITextFieldDelegate {
     
@@ -25,7 +26,33 @@ class AddViewController: UIViewController, UITextFieldDelegate {
     }
     
     @IBAction func submitQuestionButtonTapped() {
+        let record = CKRecord(recordType: "Question")
+        // Set object
+        record.setObject(questionTextField.text ?? "", forKey: "body")
+        // Dictionary way of storing the value
+        record["studentName"] = studentNameTextField.text ?? ""
         
+        record["wasAnswered"] = NSNumber(bool: false) // Set bool to 0 if false
+        
+        let container = CKContainer.defaultContainer()
+        
+        container.publicCloudDatabase.saveRecord(record) { (savedRecord, error) -> Void in
+            if error != nil {
+                // Failure
+                // Check for error codes
+//                switch CKErrorCode {
+//                    
+//                }
+                print("Error: \(error?.localizedDescription)")
+            } else {
+                // Success
+                print("Record saved: \(savedRecord)")
+            }
+            
+        }
+        
+        // You can create new properties as well
+//        record["myRandomProperty"] = "random text"
     }
     
     func textFieldShouldReturn(textField: UITextField) -> Bool {
